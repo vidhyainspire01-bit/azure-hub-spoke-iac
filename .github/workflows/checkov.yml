@@ -25,24 +25,30 @@ jobs:
         run: |
           pip install checkov openai
 
-      - name: Cleanup previous checkov file or dir
+      # ----------------------------------------------------
+      # IMPORTANT: FIX — remove the corrupted directory
+      # ----------------------------------------------------
+      - name: Cleanup stale Checkov directory
         run: |
-          if [ -d "checkov-results.json" ]; then
-            echo "⚠️ Found directory named checkov-results.json — removing..."
-            rm -rf checkov-results.json
+          if [ -d "./checkov-results.json" ]; then
+            echo "⚠️ Found corrupted checkov-results.json directory. Removing it..."
+            rm -rf ./checkov-results.json
           fi
-          if [ -f "checkov-results.json" ]; then
-            echo "⚠️ Found file checkov-results.json — removing..."
-            rm -f checkov-results.json
+          if [ -f "./checkov-results.json" ]; then
+            echo "⚠️ Found stale file. Removing it..."
+            rm -f ./checkov-results.json
           fi
 
+      # ----------------------------------------------------
+      # STEP 1 — Run Checkov
+      # ----------------------------------------------------
       - name: Step 1 - Run Checkov Scan
         run: |
           checkov \
             -d ./azure-hub-spoke \
             --external-checks-dir ./azure-hub-spoke/checkov \
             --output json \
-            --output-file-path checkov-results.json \
+            --output-file-path ./checkov-results.json \
             --quiet
 
       - name: Upload Checkov Report
@@ -51,6 +57,9 @@ jobs:
           name: checkov-report
           path: checkov-results.json
 
+      # ----------------------------------------------------
+      # STEP 2 — Agent Orchestrator
+      # ----------------------------------------------------
       - name: Step 2 - Run Agentic Orchestrator
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -58,6 +67,9 @@ jobs:
         run: |
           python agentic-iac/orchestrator/main.py --tf_dir azure-hub-spoke
 
+      # ----------------------------------------------------
+      # STEP 3 — Upload Pipeline Output
+      # ----------------------------------------------------
       - name: Upload Agentic Pipeline Report
         uses: actions/upload-artifact@v4
         with:
