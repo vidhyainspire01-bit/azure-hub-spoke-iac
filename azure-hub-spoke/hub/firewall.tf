@@ -17,4 +17,9 @@ resource "azurerm_public_ip" "fw_pip" {
   resource_group_name = azurerm_resource_group.hub.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  tags = {
+    environment = "prod"
+    owner       = "vidhya"
+  }
 }
