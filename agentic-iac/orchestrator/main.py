@@ -7,12 +7,15 @@ from agents.validator import ValidatorAgent
 from agents.explainer import ExplainerAgent
 from openai import OpenAI
 
+# Final output
 PIPELINE_OUTPUT = "agentic-iac/pipeline-result.json"
+
+# Correct unified Checkov path
 CHECKOV_FILE = os.path.join(os.getcwd(), "reports", "checkov-results.json")
 
 print("Looking for Checkov output at:", CHECKOV_FILE)
 
-
+# LLM client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
@@ -33,10 +36,10 @@ class Orchestrator:
         # =====================================================
         print("\n=== STEP 0: Checking Checkov Results ===")
 
-        # If GitHub created a DIRECTORY instead of FILE → delete it
+        # If Checkov accidentally created a directory → delete it
         if os.path.isdir(CHECKOV_FILE):
             print(f"⚠️ WARNING: '{CHECKOV_FILE}' is a directory. Removing it...")
-            os.system(f"rm -rf {CHECKOV_FILE}")
+            os.system(f"rm -rf '{CHECKOV_FILE}'")
 
         if not os.path.isfile(CHECKOV_FILE):
             print(f"❌ ERROR: Required file '{CHECKOV_FILE}' not found.")
@@ -47,10 +50,12 @@ class Orchestrator:
 
         failed = checkov_json[0]["results"]["failed_checks"]
 
-        # If no failures → stop pipeline cleanly
+        # No violations → do not run agents
         if len(failed) == 0:
             print("🎉 No violations found. Skipping Analyzer/Rewriter/Validator steps.")
+
             explanation = self.explainer.build_no_violation_report()
+
             self._save_output(
                 status="no-change",
                 analysis={"failed_checks": []},
@@ -61,25 +66,25 @@ class Orchestrator:
             return
 
         # =====================================================
-        # STEP 1 — Analyzer Agent
+        # STEP 1 — Analyzer
         # =====================================================
         print("\n=== STEP 1: Analyzer Agent ===")
         analysis = self.analyzer.run(self.tf_directory, failed)
 
         # =====================================================
-        # STEP 2 — Rewriter Agent
+        # STEP 2 — Rewriter
         # =====================================================
         print("\n=== STEP 2: Rewriter Agent ===")
         rewrite = self.rewriter.run(self.tf_directory, analysis)
 
         # =====================================================
-        # STEP 3 — Validator Agent
+        # STEP 3 — Validator
         # =====================================================
         print("\n=== STEP 3: Validator Agent ===")
         validation = self.validator.run(self.tf_directory)
 
         # =====================================================
-        # STEP 4 — Explainer Agent
+        # STEP 4 — Explainer
         # =====================================================
         print("\n=== STEP 4: Explainer Agent ===")
         explanation = self.explainer.build_explanation(
@@ -88,7 +93,7 @@ class Orchestrator:
             validation=validation
         )
 
-        # Save output
+        # SAVE RESULT
         self._save_output(
             status="completed",
             analysis=analysis,
