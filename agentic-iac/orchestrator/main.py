@@ -44,7 +44,19 @@ class Orchestrator:
         with open(CHECKOV_FILE, "r") as f:
             checkov_json = json.load(f)
 
-        failed = checkov_json[0]["results"]["failed_checks"]
+        if "results" not in checkov_json:
+            print("❌ ERROR: Invalid Checkov JSON format. 'results' key missing.")
+            print("File content:", checkov_json)
+            exit(1)
+
+        failed = checkov_json["results"].get("failed_checks", [])
+
+        if not isinstance(failed, list):
+            print("❌ ERROR: failed_checks is not a list.")
+            exit(1)
+
+        print(f"Found {len(failed)} failed checks")
+
 
         if len(failed) == 0:
             print("🎉 No violations found. Skipping Analyzer/Rewriter/Validator steps.")
