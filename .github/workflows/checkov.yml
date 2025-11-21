@@ -52,9 +52,7 @@ jobs:
             --output-file-path ./reports/checkov-results.json \
             --quiet
 
-      # Move result to root so orchestrator can read it
-      - name: Move Checkov output to root level
-        run: mv ./reports/checkov-results.json ./checkov-results.json
+      
 
       # Upload raw Checkov report
       - name: Upload Checkov Report
