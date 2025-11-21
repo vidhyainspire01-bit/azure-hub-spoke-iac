@@ -3,6 +3,7 @@ name: Checkov Policy Scan
 
 permissions:
   contents: read
+  actions: read
 
 on:
   push:
