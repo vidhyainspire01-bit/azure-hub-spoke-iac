@@ -2,8 +2,8 @@ name: Agentic IaC Autofix
 
 permissions:
   contents: write
-  actions: read
   pull-requests: write
+  actions: read
 
 on:
   push:
@@ -26,15 +26,16 @@ jobs:
           pip install checkov openai
 
       # ------------------------------
-      # STEP 1 — Checkov Scan (baseline)
+      # STEP 1 — Run Checkov Scan
       # ------------------------------
-      - name: Step 1: Run Checkov Scan
+      - name: Run Checkov Scan
         run: |
-          checkov -d ./azure-hub-spoke \
-                  --external-checks-dir ./azure-hub-spoke/checkov \
-                  --output json \
-                  --output-file-path checkov-results.json \
-                  --quiet
+          checkov \
+            -d ./azure-hub-spoke \
+            --external-checks-dir ./azure-hub-spoke/checkov \
+            --output json \
+            --output-file-path checkov-results.json \
+            --quiet
 
       - name: Upload Checkov Report
         uses: actions/upload-artifact@v4
