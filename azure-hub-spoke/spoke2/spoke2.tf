@@ -25,12 +25,48 @@ resource "azurerm_subnet" "spoke2_dev" {
   virtual_network_name = azurerm_virtual_network.spoke2_vnet.name
   address_prefixes     = ["10.2.1.0/24"]
 
+}
+
+resource "azurerm_network_interface" "vm1_nic" {
+  name                = "vm1-nic"
+  location            = azurerm_resource_group.spoke2.location
+  resource_group_name = azurerm_resource_group.spoke2.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.spoke2_dev.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "vm1" {
+  name                = "myvm"
+  location            = azurerm_resource_group.spoke2.location
+  resource_group_name = azurerm_resource_group.spoke2.name
+  size                = "Standard_B2s"
+  admin_username      = "adminuser"
+  admin_password      = "P@ssw0rd1234!"
+
+  network_interface_ids = [azurerm_network_interface.vm1_nic.id]
+
+  os_disk {
+    name                 = "myvm_os_disk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 64
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
   tags = {
     environment = "dev"
     owner       = "vidhya"
   }
 }
-
 
 resource "azurerm_network_security_group" "spoke2_dev_nsg" {
   name                = "spoke2-dev-nsg"
@@ -54,10 +90,6 @@ resource "azurerm_subnet" "spoke2_prod" {
   virtual_network_name = azurerm_virtual_network.spoke2_vnet.name
   address_prefixes     = ["10.2.2.0/24"]
 
-  tags = {
-    environment = "prod"
-    owner       = "vidhya"
-  }
 }
 
 

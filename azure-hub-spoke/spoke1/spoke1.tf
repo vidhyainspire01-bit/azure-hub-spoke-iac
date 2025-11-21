@@ -21,10 +21,6 @@ resource "azurerm_subnet" "dev" {
   virtual_network_name = azurerm_virtual_network.spoke1_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
 
-  tags = {
-    environment = "dev"
-    owner       = "vidhya"
-  }
 }
 
 resource "azurerm_network_security_group" "spoke1_dev_nsg" {
