@@ -67,6 +67,7 @@ jobs:
       # STEP 2 — Agent Orchestrator
       # ----------------------------------------------------
       - name: Step 2 - Run Agentic Orchestrator
+        working-directory: ${{ github.workspace }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PYTHONPATH: ${{ github.workspace }}/agentic-iac

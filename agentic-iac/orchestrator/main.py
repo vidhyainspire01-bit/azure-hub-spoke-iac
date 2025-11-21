@@ -8,7 +8,8 @@ from agents.explainer import ExplainerAgent
 from openai import OpenAI
 
 PIPELINE_OUTPUT = "agentic-iac/pipeline-result.json"
-CHECKOV_FILE = "./checkov-results.json"
+CHECKOV_FILE = os.path.join(os.getcwd(), "checkov-results.json")
+print("Looking for Checkov output at:", CHECKOV_FILE)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
