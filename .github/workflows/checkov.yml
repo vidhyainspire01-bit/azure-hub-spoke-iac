@@ -25,6 +25,7 @@ jobs:
           -d . \
           --external-checks-dir ./checkov \
           --output json \
+          --output-file-path results.json \
           --quiet
 
       - name: Upload Report
