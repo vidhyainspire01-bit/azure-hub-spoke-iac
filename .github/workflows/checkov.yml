@@ -25,10 +25,7 @@ jobs:
         run: |
           pip install checkov openai
 
-      # ------------------------------
-      # STEP 1 — Checkov Scan (baseline)
-      # ------------------------------
-      - name: Step 1: Run Checkov Scan
+      - name: Step 1 - Run Checkov Scan
         run: |
           checkov \
             -d ./azure-hub-spoke \
@@ -43,20 +40,13 @@ jobs:
           name: checkov-report
           path: checkov-results.json
 
-      # ------------------------------
-      # STEP 2 — Run Agentic Orchestrator
-      # ------------------------------
-      - name: Run Agentic Orchestrator
+      - name: Step 2 - Run Agentic Orchestrator
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PYTHONPATH: ${{ github.workspace }}/agentic-iac
         run: |
-          python agentic-iac/orchestrator/main.py \
-            --tf_dir azure-hub-spoke
+          python agentic-iac/orchestrator/main.py --tf_dir azure-hub-spoke
 
-      # ------------------------------
-      # STEP 3 — Upload Agent Output
-      # ------------------------------
       - name: Upload Agentic Pipeline Report
         uses: actions/upload-artifact@v4
         with:
