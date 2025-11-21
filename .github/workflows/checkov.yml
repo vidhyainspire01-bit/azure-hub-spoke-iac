@@ -26,31 +26,37 @@ jobs:
           pip install checkov openai
 
       # ----------------------------------------------------
-      # IMPORTANT: FIX — remove the corrupted directory
+      # CLEANUP: remove any corrupted or stale output
       # ----------------------------------------------------
-      - name: Cleanup stale Checkov directory
+      - name: Cleanup stale Checkov directory/file
         run: |
           if [ -d "./checkov-results.json" ]; then
-            echo "⚠️ Found corrupted checkov-results.json directory. Removing it..."
+            echo "⚠️ Found corrupted directory checkov-results.json — removing..."
             rm -rf ./checkov-results.json
           fi
           if [ -f "./checkov-results.json" ]; then
-            echo "⚠️ Found stale file. Removing it..."
+            echo "⚠️ Found stale checkov-results.json file — removing..."
             rm -f ./checkov-results.json
           fi
 
       # ----------------------------------------------------
-      # STEP 1 — Run Checkov
+      # STEP 1 — Run Checkov (write to reports folder)
       # ----------------------------------------------------
       - name: Step 1 - Run Checkov Scan
         run: |
+          mkdir -p reports
           checkov \
             -d ./azure-hub-spoke \
             --external-checks-dir ./azure-hub-spoke/checkov \
             --output json \
-            --output-file-path ./checkov-results.json \
+            --output-file-path ./reports/checkov-results.json \
             --quiet
 
+      # Move result to root so orchestrator can read it
+      - name: Move Checkov output to root level
+        run: mv ./reports/checkov-results.json ./checkov-results.json
+
+      # Upload raw Checkov report
       - name: Upload Checkov Report
         uses: actions/upload-artifact@v4
         with:
@@ -68,7 +74,7 @@ jobs:
           python agentic-iac/orchestrator/main.py --tf_dir azure-hub-spoke
 
       # ----------------------------------------------------
-      # STEP 3 — Upload Pipeline Output
+      # STEP 3 — Upload Final Pipeline Report
       # ----------------------------------------------------
       - name: Upload Agentic Pipeline Report
         uses: actions/upload-artifact@v4
