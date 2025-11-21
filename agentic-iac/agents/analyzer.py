@@ -71,8 +71,7 @@ class AnalyzerAgent:
                 ]
             )
 
-            raw_output = response.choices[0].message["content"]
-
+            raw_output = response.choices[0].message.content
             # ----------------------------
             # JSON Parse Safe Block
             # ----------------------------
