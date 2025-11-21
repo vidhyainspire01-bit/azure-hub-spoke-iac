@@ -31,7 +31,7 @@ jobs:
             -d ./azure-hub-spoke \
             --external-checks-dir ./azure-hub-spoke/checkov \
             --output json \
-            --output-file-path checkov-results.json \
+            --output-file-path ./checkov-results.json \
             --quiet
 
       - name: Upload Checkov Report

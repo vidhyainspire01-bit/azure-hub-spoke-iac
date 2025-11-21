@@ -8,7 +8,7 @@ from agents.explainer import ExplainerAgent
 from openai import OpenAI
 
 PIPELINE_OUTPUT = "agentic-iac/pipeline-result.json"
-CHECKOV_FILE = "checkov-results.json"
+CHECKOV_FILE = "./checkov-results.json"
 
 # Initialize LLM client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
