@@ -30,12 +30,11 @@ jobs:
       # ------------------------------
       - name: Step 1: Run Checkov Scan
         run: |
-          checkov \
-            -d ./azure-hub-spoke \
-            --external-checks-dir ./azure-hub-spoke/checkov \
-            --output json \
-            --output-file-path checkov-results.json \
-            --quiet
+          checkov -d ./azure-hub-spoke \
+                  --external-checks-dir ./azure-hub-spoke/checkov \
+                  --output json \
+                  --output-file-path checkov-results.json \
+                  --quiet
 
       - name: Upload Checkov Report
         uses: actions/upload-artifact@v4
@@ -44,17 +43,16 @@ jobs:
           path: checkov-results.json
 
       # ------------------------------
-      # STEP 2 — Agentic Orchestrator (Analyzer -> Rewriter -> Validator -> Explainer)
+      # STEP 2 — Agentic Orchestrator
       # ------------------------------
       - name: Run Agentic Orchestrator
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          python agentic-iac/orchestrator/main.py \
-            --tf_dir azure-hub-spoke
+          python agentic-iac/orchestrator/main.py --tf_dir azure-hub-spoke
 
       # ------------------------------
-      # STEP 3 — Upload Agentic Summary Output
+      # STEP 3 — Upload Agent Output
       # ------------------------------
       - name: Upload Agentic Pipeline Report
         uses: actions/upload-artifact@v4
