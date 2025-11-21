@@ -25,9 +25,7 @@ jobs:
         run: |
           pip install checkov openai
 
-      # ----------------------------------------------------
-      # CLEANUP: remove any corrupted or stale output
-      # ----------------------------------------------------
+      # CLEANUP corrupted cases
       - name: Cleanup stale Checkov directory/file
         run: |
           if [ -d "./checkov-results.json" ]; then
@@ -39,9 +37,7 @@ jobs:
             rm -f ./checkov-results.json
           fi
 
-      # ----------------------------------------------------
-      # STEP 1 — Run Checkov (write to reports folder)
-      # ----------------------------------------------------
+      # STEP 1 — Checkov Scan
       - name: Step 1 - Run Checkov Scan
         run: |
           mkdir -p reports
@@ -52,18 +48,14 @@ jobs:
             --output-file-path ./reports/checkov-results.json \
             --quiet
 
-      
-
-      # Upload raw Checkov report
+      # 🔥 Correct path here
       - name: Upload Checkov Report
         uses: actions/upload-artifact@v4
         with:
           name: checkov-report
-          path: checkov-results.json
+          path: reports/checkov-results.json
 
-      # ----------------------------------------------------
-      # STEP 2 — Agent Orchestrator
-      # ----------------------------------------------------
+      # STEP 2 — Orchestrator
       - name: Step 2 - Run Agentic Orchestrator
         working-directory: ${{ github.workspace }}
         env:
@@ -72,9 +64,7 @@ jobs:
         run: |
           python agentic-iac/orchestrator/main.py --tf_dir azure-hub-spoke
 
-      # ----------------------------------------------------
-      # STEP 3 — Upload Final Pipeline Report
-      # ----------------------------------------------------
+      # STEP 3 — Upload Agent Output
       - name: Upload Agentic Pipeline Report
         uses: actions/upload-artifact@v4
         with:
