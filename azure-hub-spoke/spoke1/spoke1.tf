@@ -61,6 +61,7 @@ resource "azurerm_network_security_group" "spoke1_prod_nsg" {
   }
 }
 
+
 resource "azurerm_subnet_network_security_group_association" "spoke1_prod_assoc" {
   subnet_id                 = azurerm_subnet.prod.id
   network_security_group_id = azurerm_network_security_group.spoke1_prod_nsg.id

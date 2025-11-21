@@ -10,19 +10,10 @@ from openai import OpenAI
 PIPELINE_OUTPUT = "agentic-iac/pipeline-result.json"
 CHECKOV_FILE = "./checkov-results.json"
 
-# Initialize LLM client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 class Orchestrator:
-    """
-    Full Agentic IaC Pipeline:
-      1. Analyzer → detect violations from Checkov + TF
-      2. Rewriter → auto fix Terraform
-      3. Validator → rerun Checkov
-      4. Explainer → summary for cloud engineers
-    """
-
     def __init__(self, tf_directory):
         self.tf_directory = tf_directory
         self.analyzer = AnalyzerAgent()
@@ -30,21 +21,22 @@ class Orchestrator:
         self.validator = ValidatorAgent()
         self.explainer = ExplainerAgent()
 
-    # ---------------------------------------------------------
-    # MAIN PIPELINE ENTRY
-    # ---------------------------------------------------------
     def run(self):
         print("\n🚀 Starting Agentic IaC Autofix Pipeline")
         print(f"📁 Terraform directory: {self.tf_directory}")
 
         # =====================================================
-        # STEP 0 — Load Checkov scan results
+        # STEP 0 — Load Checkov Results (Self Healing)
         # =====================================================
         print("\n=== STEP 0: Checking Checkov Results ===")
 
-        if not os.path.exists(CHECKOV_FILE):
+        # If GitHub created a DIRECTORY instead of FILE → delete it
+        if os.path.isdir(CHECKOV_FILE):
+            print(f"⚠️ WARNING: '{CHECKOV_FILE}' is a directory. Removing it...")
+            os.system(f"rm -rf {CHECKOV_FILE}")
+
+        if not os.path.isfile(CHECKOV_FILE):
             print(f"❌ ERROR: Required file '{CHECKOV_FILE}' not found.")
-            print("Make sure GitHub Action step 'Run Checkov' executed.")
             exit(1)
 
         with open(CHECKOV_FILE, "r") as f:
@@ -52,10 +44,9 @@ class Orchestrator:
 
         failed = checkov_json[0]["results"]["failed_checks"]
 
-        # If no violations → skip the entire AI pipeline
+        # If no failures → stop pipeline cleanly
         if len(failed) == 0:
             print("🎉 No violations found. Skipping Analyzer/Rewriter/Validator steps.")
-
             explanation = self.explainer.build_no_violation_report()
             self._save_output(
                 status="no-change",
@@ -94,7 +85,7 @@ class Orchestrator:
             validation=validation
         )
 
-        # Save pipeline result
+        # Save output
         self._save_output(
             status="completed",
             analysis=analysis,
@@ -106,9 +97,6 @@ class Orchestrator:
         print("\n🎯 Agentic IaC pipeline completed successfully.")
         print(f"📄 Final output saved to: {PIPELINE_OUTPUT}")
 
-    # ---------------------------------------------------------
-    # UTILITY — Save complete pipeline output
-    # ---------------------------------------------------------
     def _save_output(self, status, analysis, rewrite, validation, explanation):
         result = {
             "status": status,
@@ -126,9 +114,6 @@ class Orchestrator:
         print(f"📝 Output saved → {PIPELINE_OUTPUT}")
 
 
-# ------------------------------------------------------------
-# ENTRYPOINT
-# ------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Agentic IaC Autofix Pipeline")
     parser.add_argument("--tf_dir", required=True, help="Path to Terraform modules")
