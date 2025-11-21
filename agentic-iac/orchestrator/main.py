@@ -11,7 +11,7 @@ from openai import OpenAI
 PIPELINE_OUTPUT = "agentic-iac/pipeline-result.json"
 
 # Correct Checkov output path
-CHECKOV_FILE = os.path.join(os.getcwd(), "reports", "checkov-results.json")
+CHECKOV_FILE = os.path.join(os.getcwd(), "reports", "results_json.json")
 print("Looking for Checkov output at:", CHECKOV_FILE)
 
 # LLM client

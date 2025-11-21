@@ -23,15 +23,13 @@ jobs:
         run: |
           pip install checkov openai
 
-      # Cleanup any old/corrupted files
-      - name: Cleanup stale Checkov outputs
+      # Cleanup corrupted files
+      - name: Cleanup outputs
         run: |
           rm -rf ./reports
-          rm -rf ./checkov-results.json
+          rm -f ./checkov-results.json
 
-      # --------------------------------------------------
-      # STEP 1 — Run Checkov (correct v3.x syntax)
-      # --------------------------------------------------
+      # STEP 1 — Checkov Scan (correct syntax)
       - name: Step 1 - Run Checkov Scan
         run: |
           mkdir -p reports
@@ -40,19 +38,16 @@ jobs:
             --external-checks-dir ./azure-hub-spoke/checkov \
             --output json \
             --output-file-path ./reports \
-            --output-file-name checkov-results.json \
             --quiet
 
-      # Upload Checkov JSON correctly (hyphen NOT underscore)
+      # Upload Checkov results (auto-generated filename)
       - name: Upload Checkov Report
         uses: actions/upload-artifact@v4
         with:
           name: checkov-report
-          path: reports/checkov-results.json
+          path: reports/results_json.json
 
-      # --------------------------------------------------
-      # STEP 2 — Run Agentic Orchestrator
-      # --------------------------------------------------
+      # STEP 2 — Orchestrator
       - name: Step 2 - Run Agentic Orchestrator
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
