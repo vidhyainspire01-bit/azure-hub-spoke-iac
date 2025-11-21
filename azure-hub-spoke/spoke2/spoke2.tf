@@ -30,6 +30,24 @@ resource "azurerm_subnet" "spoke2_dev" {
     owner       = "vidhya"
   }
 }
+
+
+resource "azurerm_network_security_group" "spoke2_dev_nsg" {
+  name                = "spoke2-dev-nsg"
+  location            = azurerm_resource_group.spoke2.location
+  resource_group_name = azurerm_resource_group.spoke2.name
+
+  tags = {
+    environment = "dev"
+    owner       = "vidhya"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "spoke2_dev_assoc" {
+  subnet_id                 = azurerm_subnet.spoke2_dev.id
+  network_security_group_id = azurerm_network_security_group.spoke2_dev_nsg.id
+}
+
 resource "azurerm_subnet" "spoke2_prod" {
   name                 = "prod"
   resource_group_name  = azurerm_resource_group.spoke2.name
@@ -41,6 +59,25 @@ resource "azurerm_subnet" "spoke2_prod" {
     owner       = "vidhya"
   }
 }
+
+
+resource "azurerm_network_security_group" "spoke2_prod_nsg" {
+  name                = "spoke2-prod-nsg"
+  location            = azurerm_resource_group.spoke2.location
+  resource_group_name = azurerm_resource_group.spoke2.name
+
+  tags = {
+    environment = "prod"
+    owner       = "vidhya"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "spoke2_prod_assoc" {
+  subnet_id                 = azurerm_subnet.spoke2_prod.id
+  network_security_group_id = azurerm_network_security_group.spoke2_prod_nsg.id
+}
+
+
 resource "azurerm_virtual_network_peering" "hub_to_spoke2" {
   name                      = "hub-to-spoke2"
   resource_group_name       = azurerm_resource_group.hub.name

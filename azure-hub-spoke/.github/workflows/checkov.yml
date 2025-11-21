@@ -1,0 +1,39 @@
+name: Checkov Policy Scan
+
+
+permissions:
+  contents: read
+
+on:
+  push:
+    paths:
+      - "**/*.tf"
+  pull_request:
+    paths:
+      - "**/*.tf"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov with custom policies
+        run: |
+          checkov \
+          -d . \
+          --external-checks-dir ./checkov \
+          --output json \
+          --output-file-path results.json \
+          --quiet
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-report
+          path: results.json
