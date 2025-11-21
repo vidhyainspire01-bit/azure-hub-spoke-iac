@@ -25,10 +25,8 @@ jobs:
           -d . \
           --external-checks-dir ./checkov \
           --output json \
-          --quiet \
-          --soft-fail-on VERSION \
-          --exit-code 1
-          
+          --quiet
+
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:
