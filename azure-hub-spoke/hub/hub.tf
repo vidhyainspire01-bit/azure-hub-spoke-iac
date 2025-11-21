@@ -8,6 +8,7 @@ resource "azurerm_resource_group" "hub" {
   }
 }
 
+
 resource "azurerm_virtual_network" "hub_vnet" {
   name                = "vnet-hub"
   location            = azurerm_resource_group.hub.location

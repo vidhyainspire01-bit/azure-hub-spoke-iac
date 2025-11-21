@@ -7,11 +7,9 @@ permissions:
 
 on:
   push:
-    paths:
-      - "**/*.tf"
+    paths: ["**/*.tf"]
   pull_request:
-    paths:
-      - "**/*.tf"
+    paths: ["**/*.tf"]
 
 jobs:
   scan-and-fix:
@@ -25,23 +23,15 @@ jobs:
         run: |
           pip install checkov openai
 
-      # ----------------------------------------------------
       # CLEANUP corrupted cases
-      # ----------------------------------------------------
       - name: Cleanup stale Checkov directory/file
         run: |
-          if [ -d "./reports/checkov-results.json" ]; then
-            echo "⚠️ Removing corrupted reports/checkov-results.json directory..."
-            rm -rf ./reports/checkov-results.json
-          fi
-          if [ -f "./reports/checkov-results.json" ]; then
-            echo "⚠️ Removing stale file reports/checkov-results.json..."
-            rm -f ./reports/checkov-results.json
-          fi
+          rm -rf ./reports
+          rm -rf ./checkov-results.json
 
-      # ----------------------------------------------------
-      # STEP 1 — Checkov Scan (Write to reports/)
-      # ----------------------------------------------------
+      # -----------------------------------------
+      # STEP 1 — Correct Checkov Scan (single file)
+      # -----------------------------------------
       - name: Step 1 - Run Checkov Scan
         run: |
           mkdir -p reports
@@ -49,30 +39,26 @@ jobs:
             -d ./azure-hub-spoke \
             --external-checks-dir ./azure-hub-spoke/checkov \
             --output json \
-            --output-file-path ./reports/checkov-results.json \
+            --output-file-path ./reports \
+            --output-file-name checkov-results.json \
             --quiet
 
-      # Upload correct file
       - name: Upload Checkov Report
         uses: actions/upload-artifact@v4
         with:
           name: checkov-report
           path: reports/checkov-results.json
 
-      # ----------------------------------------------------
+      # -----------------------------------------
       # STEP 2 — Orchestrator
-      # ----------------------------------------------------
+      # -----------------------------------------
       - name: Step 2 - Run Agentic Orchestrator
-        working-directory: ${{ github.workspace }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PYTHONPATH: ${{ github.workspace }}/agentic-iac
         run: |
           python agentic-iac/orchestrator/main.py --tf_dir azure-hub-spoke
 
-      # ----------------------------------------------------
-      # STEP 3 — Upload Final Pipeline Report
-      # ----------------------------------------------------
       - name: Upload Agentic Pipeline Report
         uses: actions/upload-artifact@v4
         with:
