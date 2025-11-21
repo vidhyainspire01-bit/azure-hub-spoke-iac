@@ -14,7 +14,6 @@ resource "azurerm_firewall" "hub_fw" {
   }
 }
 
-
 resource "azurerm_public_ip" "fw_pip" {
   name                = "fw-public-ip"
   location            = azurerm_resource_group.hub.location
