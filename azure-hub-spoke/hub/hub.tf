@@ -21,7 +21,6 @@ resource "azurerm_virtual_network" "hub_vnet" {
   }
 }
 
-
 resource "azurerm_subnet" "AzureFirewallSubnet" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.hub.name

@@ -1,101 +1,121 @@
-import re
 import os
+import re
 import json
-from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class RewriterAgent:
 
-    def apply_fixes(self, findings):
+    # ==========================================================
+    # MAIN ENTRYPOINT (orchestrator calls this)
+    # ==========================================================
+    def run(self, tf_dir, analysis):
         """
-        Apply structured LLM findings to Terraform files.
-        Returns list of patched files.
+        tf_dir: terraform directory
+        analysis: dict returned from AnalyzerAgent.run()
+        {
+            "findings": [...],
+            "failed_checks": [...]
+        }
         """
 
+        findings = analysis.get("findings", [])
+
+        print(f"🛠 RewriterAgent: {len(findings)} findings received")
+
+        patched_files = self.apply_fixes(findings)
+
+        return {
+            "updated_files": [
+                {"file": f, "changes": "autofixed"}
+                for f in patched_files.keys()
+            ],
+            "count": len(patched_files)
+        }
+
+    # ==========================================================
+    # APPLY FIXES
+    # ==========================================================
+    def apply_fixes(self, findings):
         patched_files = {}
 
         for finding in findings:
-            file_path = finding["file"]
-            issue = finding["issue"]
-            fix_hint = finding["fix_hint"]
+            file_path = finding.get("file")
+            issue = finding.get("issue", "")
+            fix_hint = finding.get("fix_hint", "")
 
-            if not os.path.exists(file_path):
+            if not file_path or not os.path.exists(file_path):
                 print(f"❌ File not found: {file_path}")
                 continue
+
+            print(f"\n➡ Applying fix for issue: {issue}")
+            print(f"📄 File: {file_path}")
+            print(f"💡 Hint: {fix_hint}")
 
             with open(file_path, "r") as f:
                 content = f.read()
 
             original_content = content
 
-            # -----------------------------------------------------------------
-            # 1. Missing NSG association
-            # -----------------------------------------------------------------
-            if "NSG" in issue or "security group" in issue.lower():
+            # ----------------------------
+            # 🔹 RULE-BASED PATCHES
+            # ----------------------------
+            lowered = issue.lower()
+
+            if "nsg" in lowered or "security" in lowered:
                 content = self._patch_missing_nsg(content)
 
-            # -----------------------------------------------------------------
-            # 2. Firewall missing threat intel mode
-            # -----------------------------------------------------------------
-            if "threat intel" in issue.lower():
+            if "threat intel" in lowered:
                 content = self._patch_firewall_threat_intel(content)
 
-            # -----------------------------------------------------------------
-            # 3. Firewall missing policy reference
-            # -----------------------------------------------------------------
-            if "firewall policy" in issue.lower():
+            if "firewall policy" in lowered:
                 content = self._patch_firewall_policy(content)
 
-            # -----------------------------------------------------------------
-            # 4. Missing tags
-            # -----------------------------------------------------------------
-            if "tag" in issue.lower():
+            if "tag" in lowered:
                 content = self._patch_tags(content)
 
-            # Save if changed
+            # ----------------------------
+            # SAVE IF CHANGED
+            # ----------------------------
             if content != original_content:
                 with open(file_path, "w") as f:
                     f.write(content)
+
                 patched_files[file_path] = "patched"
-                print(f"🔧 Patched: {file_path}")
+                print(f"✅ FIXED: {file_path}")
+
             else:
-                print(f"⚠ No change applied for: {file_path}")
+                print(f"⚠ No changes required for: {file_path}")
 
         return patched_files
 
-    # =====================================================================
-    #  🔧 Patch Functions
-    # =====================================================================
+    # ==========================================================
+    # PATCH FUNCTIONS
+    # ==========================================================
 
     def _patch_missing_nsg(self, content):
         """
-        Looks for an azurerm_subnet block and adds network_security_group_id
+        Add missing network_security_group_id to azurerm_subnet
         """
-        pattern = r'resource\s+"azurerm_subnet"\s+"[\w-]+"\s*{[^}]+}'
-        blocks = re.findall(pattern, content, re.DOTALL)
+        pattern = r'(resource\s+"azurerm_subnet"\s+"[\w-]+"\s*{[^}]*?)address_prefixes'
+        replacement = (
+            r'\1network_security_group_id = azurerm_network_security_group.default.id\n  address_prefixes'
+        )
 
-        patched = content
+        new_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
 
-        for block in blocks:
-            if "network_security_group_id" not in block:
-                updated = block.replace(
-                    "address_prefixes",
-                    "network_security_group_id = azurerm_network_security_group.default.id\n  address_prefixes"
-                )
-                patched = patched.replace(block, updated)
-
-        return patched
+        return new_content
 
     def _patch_firewall_threat_intel(self, content):
         """
-        Adds threat_intel_mode = \"Deny\" inside azurerm_firewall
+        Adds threat_intel_mode = "Deny"
+        inside azurerm_firewall resources.
         """
+
         if "resource \"azurerm_firewall\"" not in content:
             return content
 
         if "threat_intel_mode" in content:
-            return content  # already present
+            return content
 
         return content.replace(
             "sku_name",
@@ -104,8 +124,9 @@ class RewriterAgent:
 
     def _patch_firewall_policy(self, content):
         """
-        Adds firewall_policy_id = azurerm_firewall_policy.hub_policy.id
+        Adds firewall_policy_id for azure firewall.
         """
+
         if "resource \"azurerm_firewall\"" not in content:
             return content
 
@@ -119,7 +140,7 @@ class RewriterAgent:
 
     def _patch_tags(self, content):
         """
-        Ensures tags block exists with required enterprise tags.
+        Ensures that a tags block exists.
         """
 
         required_tags = """
@@ -129,8 +150,8 @@ class RewriterAgent:
   }
 """
 
-        # If tags block missing
-        if "tags" not in content:
-            return content.replace("}", required_tags + "}")
+        if "tags" in content:
+            return content
 
-        return content
+        # insert tags before the last '}'
+        return content.rstrip("}") + required_tags + "}"
