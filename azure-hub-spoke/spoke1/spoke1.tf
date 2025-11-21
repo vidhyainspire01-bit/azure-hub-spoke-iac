@@ -42,6 +42,8 @@ resource "azurerm_subnet_network_security_group_association" "spoke1_dev_assoc" 
   network_security_group_id = azurerm_network_security_group.spoke1_dev_nsg.id
 }
 
+
+
 resource "azurerm_subnet" "prod" {
   name                 = "prod"
   resource_group_name  = azurerm_resource_group.spoke1.name
