@@ -4,34 +4,50 @@
         "findings": [
             {
                 "file": "azure-hub-spoke/spoke2/spoke2.tf",
-                "line": 73,
-                "issue": "Missing NSG association for 'spoke2_prod' subnet",
+                "line": 22,
+                "issue": "Missing NSG association for subnet",
+                "severity": "high",
+                "fix_hint": "Attach azurerm_network_security_group to this subnet",
+                "resource_type": "azurerm_subnet"
+            },
+            {
+                "file": "azure-hub-spoke/spoke2/spoke2.tf",
+                "line": 54,
+                "issue": "Missing NSG association for subnet",
                 "severity": "high",
                 "fix_hint": "Attach azurerm_network_security_group to this subnet",
                 "resource_type": "azurerm_subnet"
             },
             {
                 "file": "azure-hub-spoke/spoke1/spoke1.tf",
-                "line": 38,
-                "issue": "Missing NSG association",
+                "line": 25,
+                "issue": "Reference to undefined network security group",
                 "severity": "high",
-                "fix_hint": "Attach azurerm_network_security_group to this subnet",
+                "fix_hint": "Define azurerm_network_security_group.default before referencing it",
                 "resource_type": "azurerm_subnet"
             },
             {
-                "file": "azure-hub-spoke/hub/hub.tf",
-                "line": 22,
-                "issue": "Missing NSG association",
+                "file": "azure-hub-spoke/spoke1/spoke1.tf",
+                "line": 45,
+                "issue": "Reference to undefined network security group",
                 "severity": "high",
-                "fix_hint": "Attach azurerm_network_security_group to this subnet",
+                "fix_hint": "Define azurerm_network_security_group.default before referencing it",
                 "resource_type": "azurerm_subnet"
             },
             {
                 "file": "azure-hub-spoke/hub/firewall.tf",
-                "line": 22,
-                "issue": "Security rule allows traffic on port 22 from any source",
+                "line": 12,
+                "issue": "Missing NSG association for Azure Firewall subnet",
                 "severity": "high",
-                "fix_hint": "Restrict the source_address_prefix to trusted IPs or ranges",
+                "fix_hint": "Attach azurerm_network_security_group to azurerm_subnet.AzureFirewallSubnet",
+                "resource_type": "azurerm_subnet"
+            },
+            {
+                "file": "azure-hub-spoke/hub/firewall.tf",
+                "line": 24,
+                "issue": "Open inbound rule exposes port 22 to the world",
+                "severity": "high",
+                "fix_hint": "Restrict source_address_prefix for inbound rule to a specific IP or range",
                 "resource_type": "azurerm_network_security_rule"
             }
         ],
@@ -171,115 +187,115 @@
                 },
                 "code_block": [
                     [
-                        42,
+                        43,
                         "resource \"azurerm_windows_virtual_machine\" \"vm1\" {\n"
                     ],
                     [
-                        43,
+                        44,
                         "  name                = \"myvm\"\n"
                     ],
                     [
-                        44,
+                        45,
                         "  location            = azurerm_resource_group.spoke2.location\n"
                     ],
                     [
-                        45,
+                        46,
                         "  resource_group_name = azurerm_resource_group.spoke2.name\n"
                     ],
                     [
-                        46,
+                        47,
                         "  size                = \"Standard_B2s\"\n"
                     ],
                     [
-                        47,
+                        48,
                         "  admin_username      = \"adminuser\"\n"
                     ],
                     [
-                        48,
+                        49,
                         "  admin_password      = \"P@ssw0rd1234!\"\n"
                     ],
                     [
-                        49,
-                        "\n"
-                    ],
-                    [
                         50,
-                        "  network_interface_ids = [azurerm_network_interface.vm1_nic.id]\n"
+                        "\n"
                     ],
                     [
                         51,
-                        "\n"
+                        "  network_interface_ids = [azurerm_network_interface.vm1_nic.id]\n"
                     ],
                     [
                         52,
-                        "  os_disk {\n"
-                    ],
-                    [
-                        53,
-                        "    name                 = \"myvm_os_disk\"\n"
-                    ],
-                    [
-                        54,
-                        "    caching              = \"ReadWrite\"\n"
-                    ],
-                    [
-                        55,
-                        "    storage_account_type = \"Standard_LRS\"\n"
-                    ],
-                    [
-                        56,
-                        "    disk_size_gb         = 64\n"
-                    ],
-                    [
-                        57,
-                        "  }\n"
-                    ],
-                    [
-                        58,
                         "\n"
                     ],
                     [
+                        53,
+                        "  os_disk {\n"
+                    ],
+                    [
+                        54,
+                        "    name                 = \"myvm_os_disk\"\n"
+                    ],
+                    [
+                        55,
+                        "    caching              = \"ReadWrite\"\n"
+                    ],
+                    [
+                        56,
+                        "    storage_account_type = \"Standard_LRS\"\n"
+                    ],
+                    [
+                        57,
+                        "    disk_size_gb         = 64\n"
+                    ],
+                    [
+                        58,
+                        "  }\n"
+                    ],
+                    [
                         59,
-                        "  source_image_reference {\n"
+                        "\n"
                     ],
                     [
                         60,
-                        "    publisher = \"MicrosoftWindowsServer\"\n"
+                        "  source_image_reference {\n"
                     ],
                     [
                         61,
-                        "    offer     = \"WindowsServer\"\n"
+                        "    publisher = \"MicrosoftWindowsServer\"\n"
                     ],
                     [
                         62,
-                        "    sku       = \"2019-Datacenter\"\n"
+                        "    offer     = \"WindowsServer\"\n"
                     ],
                     [
                         63,
-                        "    version   = \"latest\"\n"
+                        "    sku       = \"2019-Datacenter\"\n"
                     ],
                     [
                         64,
-                        "  }\n"
+                        "    version   = \"latest\"\n"
                     ],
                     [
                         65,
-                        "  tags = {\n"
-                    ],
-                    [
-                        66,
-                        "    environment = \"dev\"\n"
-                    ],
-                    [
-                        67,
-                        "    owner       = \"vidhya\"\n"
-                    ],
-                    [
-                        68,
                         "  }\n"
                     ],
                     [
+                        66,
+                        "  tags = {\n"
+                    ],
+                    [
+                        67,
+                        "    environment = \"dev\"\n"
+                    ],
+                    [
+                        68,
+                        "    owner       = \"vidhya\"\n"
+                    ],
+                    [
                         69,
+                        "  }\n"
+                    ],
+                    [
+                        70,
                         "}\n"
                     ]
                 ],
@@ -287,8 +303,8 @@
                 "file_abs_path": "/home/runner/work/azure-hub-spoke-iac/azure-hub-spoke-iac/azure-hub-spoke/spoke2/spoke2.tf",
                 "repo_file_path": "/azure-hub-spoke/spoke2/spoke2.tf",
                 "file_line_range": [
-                    42,
-                    69
+                    43,
+                    70
                 ],
                 "resource": "azurerm_windows_virtual_machine.vm1",
                 "evaluations": null,
@@ -343,115 +359,115 @@
                 },
                 "code_block": [
                     [
-                        42,
+                        43,
                         "resource \"azurerm_windows_virtual_machine\" \"vm1\" {\n"
                     ],
                     [
-                        43,
+                        44,
                         "  name                = \"myvm\"\n"
                     ],
                     [
-                        44,
+                        45,
                         "  location            = azurerm_resource_group.spoke2.location\n"
                     ],
                     [
-                        45,
+                        46,
                         "  resource_group_name = azurerm_resource_group.spoke2.name\n"
                     ],
                     [
-                        46,
+                        47,
                         "  size                = \"Standard_B2s\"\n"
                     ],
                     [
-                        47,
+                        48,
                         "  admin_username      = \"adminuser\"\n"
                     ],
                     [
-                        48,
+                        49,
                         "  admin_password      = \"P@ssw0rd1234!\"\n"
                     ],
                     [
-                        49,
-                        "\n"
-                    ],
-                    [
                         50,
-                        "  network_interface_ids = [azurerm_network_interface.vm1_nic.id]\n"
+                        "\n"
                     ],
                     [
                         51,
-                        "\n"
+                        "  network_interface_ids = [azurerm_network_interface.vm1_nic.id]\n"
                     ],
                     [
                         52,
-                        "  os_disk {\n"
-                    ],
-                    [
-                        53,
-                        "    name                 = \"myvm_os_disk\"\n"
-                    ],
-                    [
-                        54,
-                        "    caching              = \"ReadWrite\"\n"
-                    ],
-                    [
-                        55,
-                        "    storage_account_type = \"Standard_LRS\"\n"
-                    ],
-                    [
-                        56,
-                        "    disk_size_gb         = 64\n"
-                    ],
-                    [
-                        57,
-                        "  }\n"
-                    ],
-                    [
-                        58,
                         "\n"
                     ],
                     [
+                        53,
+                        "  os_disk {\n"
+                    ],
+                    [
+                        54,
+                        "    name                 = \"myvm_os_disk\"\n"
+                    ],
+                    [
+                        55,
+                        "    caching              = \"ReadWrite\"\n"
+                    ],
+                    [
+                        56,
+                        "    storage_account_type = \"Standard_LRS\"\n"
+                    ],
+                    [
+                        57,
+                        "    disk_size_gb         = 64\n"
+                    ],
+                    [
+                        58,
+                        "  }\n"
+                    ],
+                    [
                         59,
-                        "  source_image_reference {\n"
+                        "\n"
                     ],
                     [
                         60,
-                        "    publisher = \"MicrosoftWindowsServer\"\n"
+                        "  source_image_reference {\n"
                     ],
                     [
                         61,
-                        "    offer     = \"WindowsServer\"\n"
+                        "    publisher = \"MicrosoftWindowsServer\"\n"
                     ],
                     [
                         62,
-                        "    sku       = \"2019-Datacenter\"\n"
+                        "    offer     = \"WindowsServer\"\n"
                     ],
                     [
                         63,
-                        "    version   = \"latest\"\n"
+                        "    sku       = \"2019-Datacenter\"\n"
                     ],
                     [
                         64,
-                        "  }\n"
+                        "    version   = \"latest\"\n"
                     ],
                     [
                         65,
-                        "  tags = {\n"
-                    ],
-                    [
-                        66,
-                        "    environment = \"dev\"\n"
-                    ],
-                    [
-                        67,
-                        "    owner       = \"vidhya\"\n"
-                    ],
-                    [
-                        68,
                         "  }\n"
                     ],
                     [
+                        66,
+                        "  tags = {\n"
+                    ],
+                    [
+                        67,
+                        "    environment = \"dev\"\n"
+                    ],
+                    [
+                        68,
+                        "    owner       = \"vidhya\"\n"
+                    ],
+                    [
                         69,
+                        "  }\n"
+                    ],
+                    [
+                        70,
                         "}\n"
                     ]
                 ],
@@ -459,8 +475,8 @@
                 "file_abs_path": "/home/runner/work/azure-hub-spoke-iac/azure-hub-spoke-iac/azure-hub-spoke/spoke2/spoke2.tf",
                 "repo_file_path": "/azure-hub-spoke/spoke2/spoke2.tf",
                 "file_line_range": [
-                    42,
-                    69
+                    43,
+                    70
                 ],
                 "resource": "azurerm_windows_virtual_machine.vm1",
                 "evaluations": null,
@@ -514,13 +530,9 @@
             {
                 "file": "azure-hub-spoke/spoke1/spoke1.tf",
                 "changes": "autofixed"
-            },
-            {
-                "file": "azure-hub-spoke/hub/hub.tf",
-                "changes": "autofixed"
             }
         ],
-        "count": 3
+        "count": 2
     },
     "validation": {
         "status": "error",
@@ -529,38 +541,54 @@
     },
     "explanation": {
         "title": "Agentic IaC Auto-Remediation Report",
-        "timestamp": "2025-11-21 18:05:26.321401",
+        "timestamp": "2025-11-22 09:33:40.048708",
         "initial_violations": [
             {
                 "file": "azure-hub-spoke/spoke2/spoke2.tf",
-                "line": 73,
-                "issue": "Missing NSG association for 'spoke2_prod' subnet",
+                "line": 22,
+                "issue": "Missing NSG association for subnet",
+                "severity": "high",
+                "fix_hint": "Attach azurerm_network_security_group to this subnet",
+                "resource_type": "azurerm_subnet"
+            },
+            {
+                "file": "azure-hub-spoke/spoke2/spoke2.tf",
+                "line": 54,
+                "issue": "Missing NSG association for subnet",
                 "severity": "high",
                 "fix_hint": "Attach azurerm_network_security_group to this subnet",
                 "resource_type": "azurerm_subnet"
             },
             {
                 "file": "azure-hub-spoke/spoke1/spoke1.tf",
-                "line": 38,
-                "issue": "Missing NSG association",
+                "line": 25,
+                "issue": "Reference to undefined network security group",
                 "severity": "high",
-                "fix_hint": "Attach azurerm_network_security_group to this subnet",
+                "fix_hint": "Define azurerm_network_security_group.default before referencing it",
                 "resource_type": "azurerm_subnet"
             },
             {
-                "file": "azure-hub-spoke/hub/hub.tf",
-                "line": 22,
-                "issue": "Missing NSG association",
+                "file": "azure-hub-spoke/spoke1/spoke1.tf",
+                "line": 45,
+                "issue": "Reference to undefined network security group",
                 "severity": "high",
-                "fix_hint": "Attach azurerm_network_security_group to this subnet",
+                "fix_hint": "Define azurerm_network_security_group.default before referencing it",
                 "resource_type": "azurerm_subnet"
             },
             {
                 "file": "azure-hub-spoke/hub/firewall.tf",
-                "line": 22,
-                "issue": "Security rule allows traffic on port 22 from any source",
+                "line": 12,
+                "issue": "Missing NSG association for Azure Firewall subnet",
                 "severity": "high",
-                "fix_hint": "Restrict the source_address_prefix to trusted IPs or ranges",
+                "fix_hint": "Attach azurerm_network_security_group to azurerm_subnet.AzureFirewallSubnet",
+                "resource_type": "azurerm_subnet"
+            },
+            {
+                "file": "azure-hub-spoke/hub/firewall.tf",
+                "line": 24,
+                "issue": "Open inbound rule exposes port 22 to the world",
+                "severity": "high",
+                "fix_hint": "Restrict source_address_prefix for inbound rule to a specific IP or range",
                 "resource_type": "azurerm_network_security_rule"
             },
             {
@@ -589,10 +617,6 @@
             },
             {
                 "file": "azure-hub-spoke/spoke1/spoke1.tf",
-                "change_summary": "autofixed"
-            },
-            {
-                "file": "azure-hub-spoke/hub/hub.tf",
                 "change_summary": "autofixed"
             }
         ],
