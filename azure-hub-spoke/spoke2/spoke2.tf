@@ -24,6 +24,8 @@ resource "azurerm_subnet" "spoke2_dev" {
   resource_group_name  = azurerm_resource_group.spoke2.name
   virtual_network_name = azurerm_virtual_network.spoke2_vnet.name
   network_security_group_id = azurerm_network_security_group.default.id
+  network_security_group_id = azurerm_network_security_group.default.id
+  network_security_group_id = azurerm_network_security_group.default.id
   address_prefixes     = ["10.2.1.0/24"]
 
 }
@@ -89,6 +91,8 @@ resource "azurerm_subnet" "spoke2_prod" {
   name                 = "prod"
   resource_group_name  = azurerm_resource_group.spoke2.name
   virtual_network_name = azurerm_virtual_network.spoke2_vnet.name
+  network_security_group_id = azurerm_network_security_group.default.id
+  network_security_group_id = azurerm_network_security_group.default.id
   network_security_group_id = azurerm_network_security_group.default.id
   address_prefixes     = ["10.2.2.0/24"]
 
